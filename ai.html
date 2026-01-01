@@ -108,11 +108,9 @@
 
 <script>
   async function askAI() {
-    const questionInput = document.getElementById("question");
+    const question = document.getElementById("question").value.trim();
     const responseBox = document.getElementById("response");
     const askBtn = document.getElementById("askBtn");
-
-    const question = questionInput.value.trim();
 
     if (!question) {
       responseBox.innerText = "Please enter a question.";
@@ -134,25 +132,25 @@
         }
       );
 
-      if (!res.ok) {
-        const text = await res.text();
-        responseBox.innerText =
-          "API Error (" + res.status + "): " + text;
+      const rawText = await res.text();
+      console.log("RAW RESPONSE FROM BACKEND:", rawText);
+
+      if (!rawText) {
+        responseBox.innerText = "No response body received from backend.";
         return;
       }
 
-      const data = await res.json();
-
-      if (data.answer) {
-        responseBox.innerText = data.answer;
-      } else {
-        responseBox.innerText = "Unexpected API response.";
+      try {
+        const data = JSON.parse(rawText);
+        responseBox.innerText = data.answer || rawText;
+      } catch (jsonErr) {
+        responseBox.innerText = rawText;
       }
 
     } catch (err) {
+      console.error("FETCH ERROR:", err);
       responseBox.innerText =
-        "Browser error (network or CORS). Check console.";
-      console.error(err);
+        "Request failed at browser level. Check console for details.";
     } finally {
       askBtn.disabled = false;
     }
@@ -160,4 +158,3 @@
 </script>
 </body>
 </html>
-
