@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>InfraGenie AI</title>
+</head>
+<body>
+
+<h2>InfraGenie – Ask a Question</h2>
+
+<input id="question" type="text" style="width:400px"
+       placeholder="Ask your infra question here" />
+
+<br><br>
+
+<button onclick="askAI()">Ask AI</button>
+
+<pre id="response"></pre>
+
+<script>
+async function askAI() {
+  const question = document.getElementById("question").value;
+
+  const res = await fetch(
+    "https://nk7slyckdsffoc6r2pfmscb5ui0aiqvq.lambda-url.us-east-1.on.aws",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "infragenie-secret-123"
+      },
+      body: JSON.stringify({ question })
+    }
+  );
+
+  const data = await res.json();
+  document.getElementById("response").innerText =
+    data.answer || JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>
