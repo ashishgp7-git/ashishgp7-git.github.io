@@ -110,14 +110,12 @@
   async function askAI() {
     const question = document.getElementById("question").value.trim();
     const responseBox = document.getElementById("response");
-    const askBtn = document.getElementById("askBtn");
 
     if (!question) {
       responseBox.innerText = "Please enter a question.";
       return;
     }
 
-    askBtn.disabled = true;
     responseBox.innerText = "Thinking...";
 
     try {
@@ -133,29 +131,29 @@
       );
 
       const rawText = await res.text();
-      console.log("RAW RESPONSE FROM BACKEND:", rawText);
+      console.log("RAW RESPONSE:", rawText);
 
-      if (!rawText) {
-        responseBox.innerText = "No response body received from backend.";
+      if (!res.ok) {
+        responseBox.innerText = `API Error (${res.status})`;
         return;
       }
 
+      // Safe JSON parsing
       try {
         const data = JSON.parse(rawText);
         responseBox.innerText = data.answer || rawText;
-      } catch (jsonErr) {
-        responseBox.innerText = rawText;
+      } catch {
+        responseBox.innerText = rawText || "Empty response received";
       }
 
     } catch (err) {
-      console.error("FETCH ERROR:", err);
+      console.error(err);
       responseBox.innerText =
         "Request failed at browser level. Check console for details.";
-    } finally {
-      askBtn.disabled = false;
     }
   }
 </script>
 </body>
 </html>
+
 
