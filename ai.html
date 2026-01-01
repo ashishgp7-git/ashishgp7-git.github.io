@@ -17,60 +17,68 @@
       margin: 60px auto;
       background: #ffffff;
       padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     h1 {
       text-align: center;
-      color: #2c3e50;
+      color: #1f2937;
+      margin-bottom: 5px;
     }
 
     p {
       text-align: center;
-      color: #555;
+      color: #6b7280;
+      margin-bottom: 20px;
     }
 
     textarea {
       width: 100%;
-      height: 100px;
-      padding: 10px;
+      height: 120px;
+      padding: 12px;
       font-size: 14px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
       resize: vertical;
     }
 
     button {
       margin-top: 15px;
-      padding: 12px 20px;
+      padding: 12px 22px;
       font-size: 14px;
       background-color: #2563eb;
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
     }
 
-    button:hover {
+    button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
       background-color: #1e4fd6;
     }
 
     .response-box {
       margin-top: 25px;
       padding: 15px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
       background: #f9fafb;
       white-space: pre-wrap;
-      min-height: 60px;
+      min-height: 80px;
+      color: #111827;
     }
 
     .footer {
-      margin-top: 20px;
+      margin-top: 25px;
       text-align: center;
       font-size: 12px;
-      color: #888;
+      color: #9ca3af;
     }
   </style>
 </head>
@@ -80,10 +88,10 @@
     <h1>InfraGenie AI</h1>
     <p>Ask infrastructure, cloud, or DevOps questions</p>
 
-    <textarea id="question" placeholder="Type your question here..."></textarea>
+    <textarea id="question" placeholder="Example: Why is Zabbix showing the same graph values for all time ranges?"></textarea>
 
     <br />
-    <button onclick="askAI()">Ask AI</button>
+    <button id="askBtn" onclick="askAI()">Ask AI</button>
 
     <h3>Response</h3>
     <div id="response" class="response-box">
@@ -99,6 +107,7 @@
     async function askAI() {
       const question = document.getElementById("question").value.trim();
       const responseBox = document.getElementById("response");
+      const askBtn = document.getElementById("askBtn");
 
       if (!question) {
         responseBox.innerText = "Please enter a question.";
@@ -106,27 +115,37 @@
       }
 
       responseBox.innerText = "Thinking...";
+      askBtn.disabled = true;
 
       try {
-        const res = await fetch("https://nk7slyckdsffoc6r2pfmscb5ui0aiqvq.lambda-url.us-east-1.on.aws/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "infragenie-secret-123"
-          },
-          body: JSON.stringify({ question })
-        });
+        const res = await fetch(
+          "https://nk7slyckdsffoc6r2pfmscb5ui0aiqvq.lambda-url.us-east-1.on.aws/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": "infragenie-secret-123"
+            },
+            body: JSON.stringify({ question })
+          }
+        );
 
         const data = await res.json();
 
-        if (data.answer) {
+        if (!res.ok) {
+          responseBox.innerText =
+            data.error || `Request failed (HTTP ${res.status})`;
+        } else if (data.answer) {
           responseBox.innerText = data.answer;
         } else {
           responseBox.innerText = "Unexpected response format.";
         }
 
       } catch (error) {
-        responseBox.innerText = "Error calling InfraGenie API.";
+        responseBox.innerText =
+          "Unable to reach InfraGenie API. Please try again later.";
+      } finally {
+        askBtn.disabled = false;
       }
     }
   </script>
