@@ -103,51 +103,53 @@
     </div>
   </div>
 
-  <script>
-    async function askAI() {
-      const question = document.getElementById("question").value.trim();
-      const responseBox = document.getElementById("response");
-      const askBtn = document.getElementById("askBtn");
+<script>
+  async function askAI() {
+    const question = document.getElementById("question").value.trim();
+    const responseBox = document.getElementById("response");
 
-      if (!question) {
-        responseBox.innerText = "Please enter a question.";
+    if (!question) {
+      responseBox.innerText = "Please enter a question.";
+      return;
+    }
+
+    responseBox.innerText = "Thinking...";
+
+    try {
+      const res = await fetch(
+        "https://nk7slyckdsffoc6r2pfmscb5ui0aiqvq.lambda-url.us-east-1.on.aws/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": "infragenie-secret-123"
+          },
+          body: JSON.stringify({ question })
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        responseBox.innerText =
+          "API Error (" + res.status + "): " +
+          (data.error || "Unknown error");
         return;
       }
 
-      responseBox.innerText = "Thinking...";
-      askBtn.disabled = true;
-
-      try {
-        const res = await fetch(
-          "https://nk7slyckdsffoc6r2pfmscb5ui0aiqvq.lambda-url.us-east-1.on.aws/",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": "infragenie-secret-123"
-            },
-            body: JSON.stringify({ question })
-          }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          responseBox.innerText =
-            data.error || `Request failed (HTTP ${res.status})`;
-        } else if (data.answer) {
-          responseBox.innerText = data.answer;
-        } else {
-          responseBox.innerText = "Unexpected response format.";
-        }
-
-      } catch (error) {
-        responseBox.innerText =
-          "Unable to reach InfraGenie API. Please try again later.";
-      } finally {
-        askBtn.disabled = false;
+      if (data.answer) {
+        responseBox.innerText = data.answer;
+      } else {
+        responseBox.innerText = "Unexpected API response.";
       }
+
+    } catch (err) {
+      responseBox.innerText =
+        "Browser error (network or CORS). Check console.";
+      console.error(err);
     }
-  </script>
+  }
+</script>
 </body>
 </html>
+
