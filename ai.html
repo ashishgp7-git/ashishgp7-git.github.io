@@ -88,7 +88,10 @@
     <h1>InfraGenie AI</h1>
     <p>Ask infrastructure, cloud, or DevOps questions</p>
 
-    <textarea id="question" placeholder="Example: Why is Zabbix showing the same graph values for all time ranges?"></textarea>
+    <textarea
+      id="question"
+      placeholder="Example: Why is Zabbix showing the same graph values for all time ranges?"
+    ></textarea>
 
     <br />
     <button id="askBtn" onclick="askAI()">Ask AI</button>
@@ -105,37 +108,40 @@
 
 <script>
   async function askAI() {
-    const question = document.getElementById("question").value.trim();
+    const questionInput = document.getElementById("question");
     const responseBox = document.getElementById("response");
+    const askBtn = document.getElementById("askBtn");
+
+    const question = questionInput.value.trim();
 
     if (!question) {
       responseBox.innerText = "Please enter a question.";
       return;
     }
 
+    askBtn.disabled = true;
     responseBox.innerText = "Thinking...";
 
     try {
       const res = await fetch(
-        "https://nk7slyckdsffoc6r2pfmscb5ui0aiqvq.lambda-url.us-east-1.on.aws/",
+        "http://54.234.146.169/ask",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "infragenie-secret-123"
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({ question })
         }
       );
 
-      const data = await res.json();
-
       if (!res.ok) {
+        const text = await res.text();
         responseBox.innerText =
-          "API Error (" + res.status + "): " +
-          (data.error || "Unknown error");
+          "API Error (" + res.status + "): " + text;
         return;
       }
+
+      const data = await res.json();
 
       if (data.answer) {
         responseBox.innerText = data.answer;
@@ -147,9 +153,10 @@
       responseBox.innerText =
         "Browser error (network or CORS). Check console.";
       console.error(err);
+    } finally {
+      askBtn.disabled = false;
     }
   }
 </script>
 </body>
 </html>
-
